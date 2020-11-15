@@ -27,7 +27,7 @@ nav ul li a:hover{ color:rgb(136,207,248);}
 	color:white;}
 
 #header {
-	height:710px;
+	height:480px;
 	width:100%;
 	background: #21213d;
 }
@@ -37,7 +37,7 @@ nav ul li a:hover{ color:rgb(136,207,248);}
 }
 .indent{
 	position:relative;
-	top:170px;
+	top:80px;
 }
 #moveHeader {
 	z-index: 2;
@@ -94,13 +94,17 @@ p{
 }
 .contentBody{
 	text-align: center;
-	backgroundcolor: #717070;
+
+}
+body{
+	background: #afb1b1;
 
 }
 .container{
 	display: block;
 	margin-left: auto;
 	margin-right: auto;
-	background: #afb1b1;
+	background: #f0f1f1;
 	width: 75%;
+	margin-bottom:200px;
 }

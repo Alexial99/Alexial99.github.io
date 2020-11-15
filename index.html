@@ -3,7 +3,7 @@
 <head>
 	<title>Alex Teseira</title>
 	<link rel="stylesheet" href="style.css">
-
+	<script src="canvas.js"></script>
 </head>
 <body>
 <style>
@@ -38,6 +38,25 @@
 <div class="contentBody">
 	<div class="container">
 		<h1>HI</h1>
+		<div id="container"></div>
+		<script>
+			new Chart(
+							axisNameX = "X",
+							axisNameY = "Y",
+							lineCharts ={
+								parabola: [[50,0], [40,100], [60,100], [30, 400], [70, 400]],
+								line: [[0,0], [20, 20], [60, 60], [100, 100]]
+							},
+							colorLine={
+								parabola: "red",
+								line:"blue",
+							},
+							container = "container",
+							size = 500,
+							showAxisValues = true,
+					);
+
+		</script>
 	</div>
 </div>
 </body>
