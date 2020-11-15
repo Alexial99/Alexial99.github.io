@@ -75,6 +75,12 @@ class Chart {
         scrollDiv.id = 'scrollbar';
         scrollDiv.classList.add('scrollbar');
         element.append(scrollDiv);
+
+        window.addEventListener('scroll', (e)=>{
+            let canvasT = canvas.getBoundingClientRect().top;
+            let canvasL = canvas.getBoundingClientRect().left;
+            canvas.thisParam[1] = [canvasT, canvasL];
+        })
     }
 
     scalingCanvas() {
@@ -243,9 +249,12 @@ class Chart {
     rotateCanvas(canvas) {
         let canvasT = canvas.getBoundingClientRect().top;
         let canvasL = canvas.getBoundingClientRect().left;
-
         canvas.style.transform = 'rotate(-90deg)';
         return [canvasT, canvasL];
+    }
+
+    scrollHandler(){
+
     }
 
     lineDrawing(arr, canvas, elementInitialCoordinates, ctx, color, scaling, scalingWheel, scale) {
@@ -426,7 +435,7 @@ class Chart {
                         point.onmouseout = deleteFunc;
 
                         function deleteFunc() {
-                            setTimeout(() => span.remove(), 1000);
+                            setTimeout(() => span.remove(), 500);
                             point.remove();
                         }
                     }
