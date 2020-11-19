@@ -40,11 +40,32 @@
 		<h1>HI</h1>
 		<div id="container"></div>
 		<script>
+			async function points(arr) {
+				for (let x = 0; x < 250000; x++){
+					arr.push([x, x*x-10*x + 2500]);
+				}
+			}
+			let parabola = [];
+			points(parabola).then(() => console.log('calculations end', parabola.length)).catch(e => console.log(e));
+
 			new Chart(
+					axisNameX = "X",
+					axisNameY = "Y",
+					lineCharts = {
+						parabola: parabola,
+					},
+					colorLine = {
+						parabola: "blue",
+					},
+					container = "container",
+					size = 500,
+					showAxisValues = true,
+			);
+		/*	new Chart(
 							axisNameX = "X",
 							axisNameY = "Y",
 							lineCharts ={
-								parabola: [[50,0], [40,100], [60,100], [30, 400], [70, 400]],
+								parabola: [[50,0], [40,100], [60,100], [70, 400], [30, 400]],
 								line: [[0,0], [20, 20], [60, 60], [100, 100]]
 							},
 							colorLine={
@@ -54,7 +75,7 @@
 							container = "container",
 							size = 500,
 							showAxisValues = true,
-					);
+					);*/
 
 		</script>
 	</div>

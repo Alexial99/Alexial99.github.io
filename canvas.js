@@ -93,13 +93,12 @@ class Chart {
             allArray = allArray.concat(this.coordinates[key]);
         }
 
-        let maxCoordinateX = maxNumberOfArr(0);
         let maxCoordinateY = maxNumberOfArr(1);
-        let minCoordinateX = minNumberOfArr(0);
 
         function maxNumberOfArr(axis) {
             let number = 0;
-            for (let subArr of allArray) {
+            for (let i=0;i < allArray.length;i++){    //let subarray of arrTwo
+                let subArr=allArray[i];            // for (let subArr of allArray) {
                 if (number < Number(subArr[axis])) {
                     number = Number(subArr[axis]);
                 }
@@ -107,17 +106,18 @@ class Chart {
             return number;
         }
 
-        function minNumberOfArr(axis) {
+     /*   function minNumberOfArr(axis) {
             let number = 0;
-            for (let subArr of allArray) {
+            for (let i=0;i < allArray.length;i++){    //let subarray of arrTwo
+                let subArr=allArray[i];
                 if (number > Number(subArr[axis]) && (Number(subArr[axis]) !== 0)) {
                     number = Number(subArr[axis]);
                 }
             }
             return number;
-        }
+        }*/
 
-        function depthComparatorInverse(left, right) {
+        function sortAscending(left, right) {
             if (left[0] < right[0]) {
                 return -1;
             }
@@ -133,11 +133,48 @@ class Chart {
             return 0;
         }
 
+
+        function getArrayExtremum(array){
+            let arrayThis=[];
+            let elem= array[0][1];
+            arrayThis.push(array[0]);
+            let sign;
+
+            for(let i =1;i < array.length;i++){
+                let nextSign;
+                if((allArray[i][1]-elem)>=0){
+                    nextSign=1;
+                }else{nextSign=0;}
+
+                if(i==1){sign = nextSign;}
+
+                if ((sign!=nextSign) ||(i == allArray.length - 1)) {
+                    arrayThis.push(allArray[i]);
+                }
+                elem = allArray[i][1];
+                sign = nextSign;
+            }
+
+            //extremumArray.push(arrayThis);
+            return arrayThis;
+        }
+
+
+        let maxXArray=[];
+        //let extremumArray=[];
         let arrCoordinates = Object.assign(this.coordinates);
 
         for (let key in arrCoordinates) {
-            arrCoordinates[key].sort(depthComparatorInverse);
+            let thisData=arrCoordinates[key].sort(sortAscending);
+            maxXArray.push(arrCoordinates[key][arrCoordinates[key].length-1]);
+            let extremumArray= getArrayExtremum(arrCoordinates[key]);
+            arrCoordinates[key]={data:thisData,arc:extremumArray };
+          //  console.log(arrCoordinates[key]);
         }
+        //console.log(extremumArray);
+        maxXArray.sort(sortAscending);
+        let maxCoordinateX =maxXArray[maxXArray.length-1][0];
+
 
         let scalingFactorX = scaleOfAxis(width, maxCoordinateX);
         let scalingFactorY = scaleOfAxis(height, maxCoordinateY);
@@ -147,8 +184,10 @@ class Chart {
                 let x = maxCoordinate / (axis - 21);
                 if ((String(x).slice(String(x).indexOf('.') + 1, String(x).indexOf('.') + 2)) < 5) {
                     x = Number(Math.trunc(x) + "." + 5);
+                   // console.log(x);
                 } else {
                     x = Math.ceil(x);
+
 
                 }
                 return 1 / x;
@@ -164,8 +203,9 @@ class Chart {
                 return 1;
             }
         }
-
-        return [scalingFactorX, scalingFactorY, sizeGapOgAxis, [maxCoordinateX, maxCoordinateY], width, minCoordinateX, arrCoordinates];
+        console.log(maxCoordinateX);
+//console.log( [scalingFactorX, scalingFactorY, sizeGapOgAxis, [maxCoordinateX, maxCoordinateY], width, [], arrCoordinates]);
+        return [scalingFactorX, scalingFactorY, sizeGapOgAxis, [maxCoordinateX, maxCoordinateY], width, [], arrCoordinates];
     }
 
 
@@ -174,13 +214,15 @@ class Chart {
         let ctx = canvas.getContext('2d');
         let scaling = this.scalingCanvas();
         let min = this.axisDrawing(ctx, canvas, scaling, scalingWheel, 0);
+        ctx.beginPath();
 
         let scale = scaling[1];
         scaling[8] = min[2];
         scaling[7] = min[4];
         let coordinates = scaling[6];
         for (let key in coordinates) {
-            this.lineDrawing(coordinates[key], canvas, elementInitialCoordinates, ctx, this.colorLine[key], scaling, scalingWheel, scale);
+           // console.log([coordinates[key].data,coordinates[key].arc]);
+            this.lineDrawing(coordinates[key].data, canvas, elementInitialCoordinates, ctx, this.colorLine[key], scaling, scalingWheel, scale,coordinates[key].arc);
         }
     }
 
@@ -209,29 +251,55 @@ class Chart {
         divisionsDrawing(numberDivisionsY, ctx, "y", this.showAxisValues, scaling);
 
         function divisionsDrawing(number, ctx, axis, showAxisValues, scaling) {
+            ctx.beginPath();
             let i = 0;
             let axisCoordinate = 0;
+
+            function ctxFillText(axisCoordinate,scaling,scalingWheel=1,k=0) {
+                let nameY;
+                let axis =Math.round((axisCoordinate +k)/ scaling/scalingWheel);
+                //alert (axis);
+                if ((axis>=10000)&&(axis<1000000)){
+                    nameY= String(axis).slice(0,String(axis).length-3)+"K";
+                }
+                else if((axis>=1000000)&&(axis<1000000000)){
+                    nameY= String(axis).slice(0,String(axis).length-6)+"M";
+                }
+                else if(axis>=1000000000){
+                    nameY= String(axis).slice(0,String(axis).length-9)+"B";
+                }
+                else {
+                    nameY=String(axis);
+                }
+                return nameY;
+            }
             while (i < number) {
+                ctx.beginPath();
                 i++;
                 axisCoordinate = axisCoordinate + sizeOfInterval;
+
+
+
                 if (axis === "y") {
                     ctx.moveTo(axisCoordinate + 35, 32);
                     ctx.lineTo(axisCoordinate + 35, 40);
+                    let nameY = ctxFillText(axisCoordinate,scaling[1]);
 
                     if ((showAxisValues)) {
-                        ctx.fillText(String(Math.round(axisCoordinate / scaling[1])), 6 + axisCoordinate + 19, 28, 50);
+                        ctx.fillText(nameY, 6 + axisCoordinate + 19, 28, 50);
 
                     }
                 } else {
                     ctx.moveTo(32, axisCoordinate + 35);
                     ctx.lineTo(40, axisCoordinate + 35);
-                    point.push(Math.round(axisCoordinate / scaling[0] / scalingWheel));
+                    if(i==1){point=(Math.round((axisCoordinate+k) / scaling[0] / scalingWheel));}
+
                     if ((showAxisValues)) {
 
                         ctx.rotate(90 * Math.PI / 180);
-                        ctx.fillText(
-                            String(Math.round((axisCoordinate / scaling[0] / scalingWheel) + k / scaling[0] / scalingWheel)),
-                            6 + axisCoordinate + 19, -18, 50
+                        let nameX = ctxFillText(axisCoordinate,scaling[0],scalingWheel,k);
+
+                        ctx.fillText(nameX,6 + axisCoordinate + 19, -18, 50
                         );
                         ctx.rotate(-90 * Math.PI / 180);
                     }
@@ -243,7 +311,7 @@ class Chart {
 
         }
 
-        return [scaling[2], [numberDivisionsX, numberDivisionsY], point[0], scalingWheel, k]
+        return [scaling[2], [numberDivisionsX, numberDivisionsY], point, scalingWheel, k]
     }
 
     rotateCanvas(canvas) {
@@ -257,17 +325,37 @@ class Chart {
 
     }
 
-    lineDrawing(arr, canvas, elementInitialCoordinates, ctx, color, scaling, scalingWheel, scale) {
+    lineDrawing(arr, canvas, elementInitialCoordinates, ctx, color, scaling, scalingWheel, scale,arrayArc) {
+        //console.log(arr);
         ctx.beginPath();
-        ctx.moveTo(Number(arr[0][1] * scaling[1] + 37), Number(arr[0][0] * scalingWheel * scaling[0] + 37));
+        //ctx.moveTo(Number(arr[0][1] * scaling[1] + 37), Number(arr[0][0] * scalingWheel * scaling[0] + 37));
         ctx.strokeStyle = color;
+     // console.log(arr[0][0]);
         ctx.arc(Number(arr[0][1] * scaling[1] + 37), Number(arr[0][0] * scaling[0] * scalingWheel + 37), 2, 0, Math.PI * 2, true);
 
-        let arrTwo = arr.slice(1, arr.length);
+        let arrTwo = arr.slice(0, arr.length);
+        let i;
+        for (i=0;i < arrTwo.length-1;i++){    //let subarray of arrTwo
+            let subarrayMoveTo=arrTwo[i];
 
-        for (let subarray of arrTwo) {
-            ctx.lineTo(Number(subarray[1] * scaling[1] + 37), Number(subarray[0] * scalingWheel * scaling[0]) + 37);
+            let subarray=arrTwo[i+1];
+            ctx.beginPath();
+            ctx.moveTo(Number(subarrayMoveTo[1] * scaling[1] + 37), Number(subarrayMoveTo[0] * scalingWheel * scaling[0] + 37));
+
+            ctx.lineTo(Number(subarray[1] * scaling[1] + 37), Number(subarray[0] * scalingWheel * scaling[0] + 37));
+           //  ctx.arc(Number(subarray[1] * scaling[1] + 37), Number(subarray[0] * scalingWheel * scaling[0] + 37), 2, 0, Math.PI * 2, true);
+            for(let j=1;j< arrayArc.length;j++){
+                if (subarray===arrayArc[j]){
+                    ctx.beginPath();
+                    ctx.arc(Number(subarray[1] * scaling[1] + 37), Number(subarray[0] * scalingWheel * scaling[0] + 37), 2, 0, Math.PI * 2, true);
+                    ctx.stroke();
+                }
+            }
+         //   if(i==arrTwo.length-1){alert([subarray,arrayArc[arrayArc.length-1]]);}
+            /*ctx.beginPath();
             ctx.arc(Number(subarray[1] * scaling[1] + 37), Number(subarray[0] * scalingWheel * scaling[0] + 37), 2, 0, Math.PI * 2, true);
+           */
+            ctx.stroke();
         }
 
         ctx.stroke();
@@ -315,6 +403,7 @@ class Chart {
         }
 
         function getCoordinateX(e) {
+
             let newLeft = e.pageX - sliderCoords.left - shiftX;
             if (newLeft < 0) newLeft = 0;
             if (newLeft > right) newLeft = right;
@@ -327,7 +416,8 @@ class Chart {
             let scalingWheel=canvas.thisParam[3];
             let k = maxNumberOfArr[0] * scaling[0]*scalingWheel / 100 * e.target.thisParam[1];
             scaling[7] = k;
-            ctx.clearRect(0, 0, maxNumberOfArr[1] * scaling[1] + 100, maxNumberOfArr[0] * scaling[0] * scale + 100);
+           // ctx.clearRect(0, 0, maxNumberOfArr[1] * scaling[1] + 100, maxNumberOfArr[0] * scaling[0] * scale + 100);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             let rectSize = self.axisDrawing(ctx, canvas, scaling, scale, k);
             ctx.save();
             ctx.rect(36, 36, rectSize[1][0] * rectSize[0], rectSize[1][1] * rectSize[0]);
@@ -337,7 +427,7 @@ class Chart {
 
             let coordinates = scaling[6];
             for (let key in coordinates) {
-                self.lineDrawing(coordinates[key], canvas, elementInitialCoordinates, ctx, self.colorLine[key], scaling, scale, scale);
+                self.lineDrawing(coordinates[key].data, canvas, elementInitialCoordinates, ctx, self.colorLine[key], scaling, scale, scale,coordinates[key].arc);
             }
 
             ctx.translate(0, k);
@@ -347,6 +437,7 @@ class Chart {
     }
 
     scalingPath(e) {
+
 
         let canvas = e.target.thisParam[0];
         let ctx = canvas.getContext('2d');
@@ -366,13 +457,14 @@ class Chart {
         } else scale += 0.05;
 
         if (scaling[8] > 1) {
-            ctx.clearRect(0, 0, this.height, this.width);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             self.axisDrawing(ctx, canvas, scaling, scale);
             ctx.fillStyle = 'black';
 
             let coordinates = scaling[6];
             for (let key in coordinates) {
-                self.lineDrawing(coordinates[key], canvas, elementInitialCoordinates, ctx, self.colorLine[key], scaling, scale, scale);
+                self.lineDrawing(coordinates[key].data, canvas, elementInitialCoordinates, ctx, self.colorLine[key], scaling, scale, scale,coordinates[key].arc);
             }
             let widthThumb;
             if (scale < 1.5) {
@@ -412,7 +504,8 @@ class Chart {
         let coordinates = scaling[6];
 
         for (let key in coordinates) {
-            for (let subarray of coordinates[key]) {
+            for (let i=0;i < coordinates[key].data.length;i++){    //let subarray of arrTwo
+                let subarray=coordinates[key].data[i];                    //for (let subarray of coordinates[key]) {
 
                 if (((Number(subarray[1] * scaling[1] + 37) - 1.5) <= Number(canvasXElemPage))
                     && (Number(canvasXElemPage) <= (Number(subarray[1] * scaling[1] + 37) + 1.5))) {
